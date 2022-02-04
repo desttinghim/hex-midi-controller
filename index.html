@@ -2,9 +2,41 @@
 <html>
   <head>
     <title>Hex Midi Controller</title>
+    <style>
+     html, body, .input, .log {
+       width: 100%;
+       height: 100%;
+       margin: 0;
+     }
+     #viewToggle {
+       position: absolute;
+       opacity: 0.3;
+     }
+     #viewToggle:hover {
+      opacity: 1.0;
+     }
+     .hidden {
+       display: none;
+     }
+     .hide-overflow {
+       overflow: hidden;
+       white-space: nowrap;
+       text-overflow: ellipsis;
+       max-width: 100%;
+       max-height: 2em;
+     }
+     .line {
+       max-width: 100%;
+     }
+     .log {
+       font-family: monospace;
+     }
+    </style>
   </head>
   <body>
-    <pre class="log"> </pre>
+    <button id="viewToggle">Log</button>
+    <div class="input hidden"> </div>
+    <div class="log"> </div>
     <script type="text/javascript" src="script.js"></script>
   </body>
 </html>

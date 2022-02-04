@@ -1,16 +1,43 @@
 "use strict";
 
+const toggleLogAndInput = () => {
+  console.log("Toggling");
+  document.querySelector(".log").classList.toggle("hidden");
+  document.querySelector(".input").classList.toggle("hidden");
+};
+
+document
+  .querySelector("#viewToggle")
+  .addEventListener("click", toggleLogAndInput);
+
 class Logger {
-  #views = document.querySelectorAll(".log");
-  constructor() {}
+  #view = document.querySelector(".log");
+  constructor() {
+    this.#view.addEventListener("click", (event) => {
+      if (event.target.classList.contains("toggle")) {
+        event.target.closest(".line").classList.toggle("hide-overflow");
+      }
+    });
+  }
   log(text) {
-    this.#views.forEach((view) => view.append(text + "\n"));
+    const el = document.createElement("div");
+    el.classList.add("line");
+    el.classList.add("hide-overflow");
+
+    const toggle = document.createElement("button");
+    toggle.classList.add("toggle");
+    toggle.textContent = "Show/Hide";
+    el.append(toggle);
+
+    const message = document.createElement("span");
+    message.textContent = text;
+    el.append(message);
+
+    this.#view.append(el);
   }
   logPort(port) {
     this.log(
-      `[${port.type.toUpperCase()}] id: ${port.id} manufacturer: ${
-        port.manufacturer
-      } name: ${port.name} version: ${port.version}`
+      `[${port.type}] ${port.name} ${port.version} ${port.manufacturer} ${port.id}`
     );
   }
 }
@@ -30,6 +57,7 @@ const onStateChange = (change) => {
 
 const load = async () => {
   try {
+    toggleLogAndInput();
     const midi = await navigator.requestMIDIAccess();
     logger.log("Midi Ready!");
     console.dir(midi);
