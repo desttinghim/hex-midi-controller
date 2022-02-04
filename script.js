@@ -80,25 +80,41 @@ navigator?.requestMIDIAccess
 class HexGrid {
   #canvas;
   #ctx;
+  #points = [];
+  #clicked = false;
   constructor(canvas) {
     this.#canvas = canvas;
     const parent = this.#canvas.parentElement;
-    console.log(parent.clientWidth, parent.clientHeight);
     this.#canvas.width = parent.clientWidth;
     this.#canvas.height = parent.clientHeight;
 
     this.#ctx = this.#canvas.getContext("2d");
-    this.#canvas.addEventListener("click", this.ontap.bind(this));
-
-    this.#ctx.fillStyle = "green";
-    this.#ctx.fillRect(10, 10, 150, 100);
+    this.#canvas.addEventListener("pointerdown", this.onpointerdown.bind(this));
+    this.#canvas.addEventListener("pointermove", this.onpointermove.bind(this));
+    this.#canvas.addEventListener("pointerup", this.onpointerup.bind(this));
   }
-  ontap(event) {
-    this.#ctx.fillStyle = "green";
+  onpointerdown(event) {
     console.log(event.x, event.y);
+    this.#points = [{ x: event.x, y: event.y }];
+    this.redraw();
+    this.#clicked = true;
+  }
+  onpointermove(event) {
+    if (!this.#clicked) return;
+    this.#points.push({ x: event.x, y: event.y });
+    this.redraw();
+  }
+  onpointerup(event) {
+    this.#points.push({ x: event.x, y: event.y });
+    this.redraw();
+    this.#clicked = false;
+  }
+  redraw() {
+    this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     this.#ctx.beginPath();
-    this.#ctx.ellipse(event.x, event.y, 40, 40, 0, 0, Math.PI * 2);
-    this.#ctx.fill();
+    this.#ctx.moveTo(this.#points[0].x, this.#points.y);
+    this.#points.forEach((point) => this.#ctx.lineTo(point.x, point.y));
+    this.#ctx.stroke();
   }
 }
 
