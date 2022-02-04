@@ -4,6 +4,7 @@
     <title>Hex Midi Controller</title>
     <style>
      html, body, .input, .log {
+       position: fixed;
        width: 100%;
        height: 100%;
        margin: 0;
@@ -31,6 +32,9 @@
      .log {
        font-family: monospace;
      }
+     .input {
+       touch-action: none;
+     }
      #canvas {
        width: 100%;
        height: 100%;
@@ -38,11 +42,11 @@
     </style>
   </head>
   <body>
-    <button id="viewToggle">Log</button>
     <div class="input hidden">
       <canvas id="canvas"></canvas>
     </div>
     <div class="log"> </div>
+    <button id="viewToggle">Log</button>
     <script type="text/javascript" src="script.js"></script>
   </body>
 </html>

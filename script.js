@@ -81,7 +81,7 @@ class HexGrid {
   #canvas;
   #ctx;
   #points = new Map();
-  #clicked = new Map();
+  #pointerCount = 0;
   constructor(canvas) {
     this.#canvas = canvas;
     const parent = this.#canvas.parentElement;
@@ -97,24 +97,29 @@ class HexGrid {
     this.#points.get(pointer).push({ x: event.x, y: event.y });
   }
   onpointerdown(event) {
+    event.preventDefault();
+    if (this.#pointerCount === 0) {
+      this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+    }
     console.log(event.x, event.y);
     this.#points.set(event.pointerId, [{ x: event.x, y: event.y }]);
     this.redraw();
-    this.#clicked = true;
+    this.#pointerCount += 1;
   }
   onpointermove(event) {
+    event.preventDefault();
     if (!this.#points.has(event.pointerId)) return;
     this.addPoint(event.pointerId, event.x, event.y);
     this.redraw();
   }
   onpointerup(event) {
+    event.preventDefault();
     this.addPoint(event.pointerId, event.x, event.y);
     this.redraw();
     this.#points.delete(event.pointerId);
-    this.#clicked = false;
+    this.#pointerCount -= 1;
   }
   redraw() {
-    this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     this.#points.forEach((pointArr) => {
       this.#ctx.beginPath();
       this.#ctx.moveTo(pointArr[0].x, pointArr[0].y);
