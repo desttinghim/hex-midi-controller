@@ -1,14 +1,12 @@
 "use strict";
 
-const toggleLogAndInput = () => {
+const toggleView = () => {
   console.log("Toggling");
-  document.querySelector(".log").classList.toggle("hidden");
+  document.querySelector(".settings").classList.toggle("hidden");
   document.querySelector(".input").classList.toggle("hidden");
 };
 
-document
-  .querySelector("#viewToggle")
-  .addEventListener("click", toggleLogAndInput);
+document.querySelector("#viewToggle").addEventListener("click", toggleView);
 
 class Logger {
   #view = document.querySelector(".log");
@@ -44,31 +42,87 @@ class Logger {
 
 const logger = new Logger();
 
-const onMIDIMessage = (message) => {
-  console.dir(message);
-  logger.log(message.data.join(" "));
-};
+class MIDIHandler {
+  #midiAccess;
+  selectInput;
+  selectOutput;
+  currentInput;
+  currentOutput;
+  constructor(midiAccess) {
+    console.log("Constructor");
+    this.#midiAccess = midiAccess;
+    this.#midiAccess.onstatechange = this.onStateChange.bind(this);
+    this.selectInput = document.querySelector("#midi-input-select");
+    this.selectOutput = document.querySelector("#midi-output-select");
+    this.selectInput.addEventListener("change", this.changeInput.bind(this));
+    this.selectOutput.addEventListener("change", this.changeOutput.bind(this));
+    this.updateSelects();
+    this.setInput(this.#midiAccess.inputs.keys().next().value);
+    this.setOutput(this.#midiAccess.outputs.keys().next().value);
+  }
+  onMIDIMessage(message) {
+    logger.log(message.data.join(" "));
+  }
+  onStateChange(change) {
+    logger.logPort(change.port);
+    this.updateSelects();
+  }
+  updateSelects() {
+    let inputHTML = "";
+    let i = 0;
+    let current = 0;
+    for (const [id, input] of this.#midiAccess.inputs.entries()) {
+      if (this.currentInput === id) current = i;
+      i += 1;
+      inputHTML += `<option id="${id}" value=${id}>${input.name}</option>`;
+    }
+    this.selectInput.innerHTML = inputHTML;
+    this.selectInput.selectedIndex = current;
 
-const onStateChange = (change) => {
-  console.dir(change);
-  const port = change.port;
-  logger.logPort(port);
-};
+    let outputHTML = "";
+    i = 0;
+    current = 0;
+    for (const [id, output] of this.#midiAccess.outputs.entries()) {
+      if (this.currentOutput === id) current = i;
+      i += 1;
+      outputHTML += `<option value=${id}>${output.name}</option>`;
+    }
+    this.selectOutput.innerHTML = outputHTML;
+    this.selectOutput.selectedIndex = current;
+  }
+  changeInput(event) {
+    this.setInput(event.target.value);
+  }
+  changeOutput(event) {
+    this.setOutput(event.target.value);
+  }
+  setInput(input) {
+    if (this.currentInput)
+      this.#midiAccess.inputs.get(this.currentInput).onmidimessage ??= null;
+
+    this.currentInput = input;
+    this.#midiAccess.inputs.get(this.currentInput).onmidimessage =
+      this.onMIDIMessage.bind(this);
+  }
+  setOutput(output) {
+    if (this.currentOutput)
+      this.#midiAccess.outputs.get(this.currentOutput).onmidimessage ??= null;
+
+    this.currentOutput = output;
+    this.#midiAccess.outputs.get(this.currentOutput).onmidimessage =
+      this.onMIDIMessage.bind(this);
+  }
+}
 
 const load = async () => {
   try {
-    toggleLogAndInput();
+    toggleView();
     const midi = await navigator.requestMIDIAccess();
     logger.log("Midi Ready!");
     console.dir(midi);
-    midi.onstatechange = onStateChange;
-    midi.inputs.forEach((input) => {
-      logger.logPort(input);
-      console.dir(input);
-      input.onmidimessage = onMIDIMessage;
-    });
-    midi.outputs.forEach((output) => logger.logPort(output));
+    const midiHandler = new MIDIHandler(midi);
   } catch (err) {
+    console.error(err);
     logger.log(err);
   }
 };

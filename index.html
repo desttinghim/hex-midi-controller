@@ -9,24 +9,18 @@
        height: 100%;
        margin: 0;
      }
-     #viewToggle {
-       min-width: 40px;
-       min-height: 40px;
-       position: absolute;
-       opacity: 0.3;
-     }
-     #fullscreen {
-       min-width: 40px;
-       min-height: 40px;
+     .actionbar {
        position: absolute;
        right: 0;
+       top: 0;
+     }
+     .actionbar button {
        opacity: 0.3;
+       min-width: 80px;
+       min-height: 60px;
      }
-     #viewToggle:hover {
-      opacity: 1.0;
-     }
-     .hidden {
-       display: none;
+     .actionbar button:hover {
+       opacity: 1.0;
      }
      .hide-overflow {
        overflow: hidden;
@@ -38,8 +32,24 @@
      .line {
        max-width: 100%;
      }
+     .settings {
+       display: flex;
+       flex-direction: row;
+       justify-content: center;
+       position: relative;
+       width: 100%;
+       height: 1000%;
+     }
+     .settings  * {
+       position: relative;
+       flex: 50%;
+     }
      .log {
        font-family: monospace;
+       max-width: 50%;
+       flex: 50%;
+     }
+     .configure {
      }
      .input {
        touch-action: none;
@@ -48,15 +58,40 @@
        width: 100%;
        height: 100%;
      }
+     .hidden {
+       display: none;
+     }
     </style>
   </head>
   <body>
     <div class="input hidden">
       <canvas id="canvas"></canvas>
     </div>
-    <div class="log"> </div>
-    <button id="viewToggle">Log</button>
-    <button id="fullscreen">Fullscreen</button>
+    <div class="settings">
+      <div class="configure">
+
+        <label for="midi-input-select">
+          Select a MIDI Input
+        </label>
+        <select id="midi-input-select">
+          <option value="">None</option>
+        </select>
+        <br />
+
+        <label for="midi-output-select">
+          Select a MIDI Output
+        </label>
+        <select id="midi-output-select">
+          <option value="">None</option>
+        </select>
+
+      </div>
+      <div class="log"> </div>
+    </div>
+    <div class="actionbar">
+      <button id="viewToggle">Settings</button>
+      <button id="fullscreen">Fullscreen</button>
+    </div>
     <script type="text/javascript" src="script.js"></script>
   </body>
 </html>
