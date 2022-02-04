@@ -96,10 +96,11 @@ class HexGrid {
     this.#canvas.width = parent.clientWidth;
     this.#canvas.height = parent.clientHeight;
   }
-  addPoint(pointer, x, y) {
-    this.#points.get(pointer).push({
-      x: event.x - this.#canvas.offsetLeft,
-      y: event.y - this.#canvas.offsetTop,
+  addPoint(event) {
+    const rect = this.#canvas.getBoundingClientRect();
+    this.#points.get(event.pointerId).push({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
     });
   }
   onpointerdown(event) {
@@ -107,26 +108,25 @@ class HexGrid {
     if (this.#pointerCount === 0) {
       this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     }
-    console.log(event.x, event.y);
-    this.#points.set(event.pointerId, [{ x: event.x, y: event.y }]);
+    this.#points.set(event.pointerId, []);
+    this.addPoint(event);
     this.redraw();
     this.#pointerCount += 1;
   }
   onpointermove(event) {
     event.preventDefault();
     if (!this.#points.has(event.pointerId)) return;
-    this.addPoint(event.pointerId, event.x, event.y);
+    this.addPoint(event);
     this.redraw();
   }
   onpointerup(event) {
     event.preventDefault();
-    this.addPoint(event.pointerId, event.x, event.y);
+    this.addPoint(event);
     this.redraw();
     this.#points.delete(event.pointerId);
     this.#pointerCount -= 1;
   }
   redraw() {
-    // this.resize();
     this.#points.forEach((pointArr) => {
       this.#ctx.beginPath();
       this.#ctx.moveTo(pointArr[0].x, pointArr[0].y);
@@ -140,6 +140,10 @@ const grid = new HexGrid(document.getElementById("canvas"));
 const page = document.documentElement;
 const fullscreen = document.querySelector("#fullscreen");
 fullscreen.addEventListener("click", () => {
-  page.requestFullscreen({ navigationUI: "hide" });
+  if (!document.fullscreenElement) {
+    page.requestFullscreen({ navigationUI: "hide" });
+  } else {
+    document.exitFullscreen();
+  }
 });
-document.defaultView.addEventListener("resize", grid.resize());
+document.defaultView.addEventListener("resize", grid.resize.bind(grid));
