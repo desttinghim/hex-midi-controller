@@ -84,17 +84,23 @@ class HexGrid {
   #pointerCount = 0;
   constructor(canvas) {
     this.#canvas = canvas;
-    const parent = this.#canvas.parentElement;
-    this.#canvas.width = parent.clientWidth;
-    this.#canvas.height = parent.clientHeight;
+    this.resize();
 
     this.#ctx = this.#canvas.getContext("2d");
     this.#canvas.addEventListener("pointerdown", this.onpointerdown.bind(this));
     this.#canvas.addEventListener("pointermove", this.onpointermove.bind(this));
     this.#canvas.addEventListener("pointerup", this.onpointerup.bind(this));
   }
+  resize() {
+    const parent = this.#canvas.parentElement;
+    this.#canvas.width = parent.clientWidth;
+    this.#canvas.height = parent.clientHeight;
+  }
   addPoint(pointer, x, y) {
-    this.#points.get(pointer).push({ x: event.x, y: event.y });
+    this.#points.get(pointer).push({
+      x: event.x - this.#canvas.offsetLeft,
+      y: event.y - this.#canvas.offsetTop,
+    });
   }
   onpointerdown(event) {
     event.preventDefault();
@@ -120,6 +126,7 @@ class HexGrid {
     this.#pointerCount -= 1;
   }
   redraw() {
+    // this.resize();
     this.#points.forEach((pointArr) => {
       this.#ctx.beginPath();
       this.#ctx.moveTo(pointArr[0].x, pointArr[0].y);
@@ -130,3 +137,9 @@ class HexGrid {
 }
 
 const grid = new HexGrid(document.getElementById("canvas"));
+const page = document.documentElement;
+const fullscreen = document.querySelector("#fullscreen");
+fullscreen.addEventListener("click", () => {
+  page.requestFullscreen({ navigationUI: "hide" });
+});
+document.defaultView.addEventListener("resize", grid.resize());
