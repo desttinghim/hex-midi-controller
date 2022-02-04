@@ -76,3 +76,30 @@ const load = async () => {
 navigator?.requestMIDIAccess
   ? load()
   : logger.log("Your browser doesn't support midi.");
+
+class HexGrid {
+  #canvas;
+  #ctx;
+  constructor(canvas) {
+    this.#canvas = canvas;
+    const parent = this.#canvas.parentElement;
+    console.log(parent.clientWidth, parent.clientHeight);
+    this.#canvas.width = parent.clientWidth;
+    this.#canvas.height = parent.clientHeight;
+
+    this.#ctx = this.#canvas.getContext("2d");
+    this.#canvas.addEventListener("click", this.ontap.bind(this));
+
+    this.#ctx.fillStyle = "green";
+    this.#ctx.fillRect(10, 10, 150, 100);
+  }
+  ontap(event) {
+    this.#ctx.fillStyle = "green";
+    console.log(event.x, event.y);
+    this.#ctx.beginPath();
+    this.#ctx.ellipse(event.x, event.y, 40, 40, 0, 0, Math.PI * 2);
+    this.#ctx.fill();
+  }
+}
+
+const grid = new HexGrid(document.getElementById("canvas"));
