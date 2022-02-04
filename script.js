@@ -80,8 +80,8 @@ navigator?.requestMIDIAccess
 class HexGrid {
   #canvas;
   #ctx;
-  #points = [];
-  #clicked = false;
+  #points = new Map();
+  #clicked = new Map();
   constructor(canvas) {
     this.#canvas = canvas;
     const parent = this.#canvas.parentElement;
@@ -93,28 +93,34 @@ class HexGrid {
     this.#canvas.addEventListener("pointermove", this.onpointermove.bind(this));
     this.#canvas.addEventListener("pointerup", this.onpointerup.bind(this));
   }
+  addPoint(pointer, x, y) {
+    this.#points.get(pointer).push({ x: event.x, y: event.y });
+  }
   onpointerdown(event) {
     console.log(event.x, event.y);
-    this.#points = [{ x: event.x, y: event.y }];
+    this.#points.set(event.pointerId, [{ x: event.x, y: event.y }]);
     this.redraw();
     this.#clicked = true;
   }
   onpointermove(event) {
-    if (!this.#clicked) return;
-    this.#points.push({ x: event.x, y: event.y });
+    if (!this.#points.has(event.pointerId)) return;
+    this.addPoint(event.pointerId, event.x, event.y);
     this.redraw();
   }
   onpointerup(event) {
-    this.#points.push({ x: event.x, y: event.y });
+    this.addPoint(event.pointerId, event.x, event.y);
     this.redraw();
+    this.#points.delete(event.pointerId);
     this.#clicked = false;
   }
   redraw() {
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
-    this.#ctx.beginPath();
-    this.#ctx.moveTo(this.#points[0].x, this.#points.y);
-    this.#points.forEach((point) => this.#ctx.lineTo(point.x, point.y));
-    this.#ctx.stroke();
+    this.#points.forEach((pointArr) => {
+      this.#ctx.beginPath();
+      this.#ctx.moveTo(pointArr[0].x, pointArr[0].y);
+      pointArr.forEach((point) => this.#ctx.lineTo(point.x, point.y));
+      this.#ctx.stroke();
+    });
   }
 }
 
