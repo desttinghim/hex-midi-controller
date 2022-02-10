@@ -131,6 +131,12 @@ navigator?.requestMIDIAccess
   ? load()
   : logger.log("Your browser doesn't support midi.");
 
+const dist = (p1, p2) => {
+  let x = p1.x - p2.x;
+  let y = p1.y - p2.y;
+  return Math.sqrt(x * x + y * y);
+};
+
 class HexGrid {
   #canvas;
   #ctx;
@@ -144,6 +150,8 @@ class HexGrid {
     this.#canvas.addEventListener("pointerdown", this.onpointerdown.bind(this));
     this.#canvas.addEventListener("pointermove", this.onpointermove.bind(this));
     this.#canvas.addEventListener("pointerup", this.onpointerup.bind(this));
+
+    this.drawgrid();
   }
   resize() {
     const parent = this.#canvas.parentElement;
@@ -159,9 +167,6 @@ class HexGrid {
   }
   onpointerdown(event) {
     event.preventDefault();
-    if (this.#pointerCount === 0) {
-      this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
-    }
     this.#points.set(event.pointerId, []);
     this.addPoint(event);
     this.redraw();
@@ -180,7 +185,47 @@ class HexGrid {
     this.#points.delete(event.pointerId);
     this.#pointerCount -= 1;
   }
+  getActiveCells() {
+    const gap = 80;
+    const cellSize = 60;
+    const activePoints = [...this.#points.values()].flatMap((pointArr) =>
+      pointArr.slice(-1)
+    );
+    let cells = [];
+    for (let y = 0; y < 10; y++) {
+      const maxRow = y % 2 === 0 ? 9 : 10;
+      const offset = y % 2 === 0 ? gap / 2 : 0;
+      let row = [];
+      for (let x = 0; x < maxRow; x++) {
+        row.push(
+          activePoints.find(
+            (point) =>
+              dist(point, { x: x * gap + offset, y: y * gap }) <= cellSize
+          )
+        );
+      }
+      cells.push(row);
+    }
+    return cells;
+  }
+  drawgrid() {
+    const active = this.getActiveCells();
+    const cellSize = 60;
+    const gap = 80;
+    for (let y = 0; y < 10; y++) {
+      const maxRow = y % 2 === 0 ? 9 : 10;
+      const offset = y % 2 === 0 ? gap / 2 : 0;
+      for (let x = 0; x < maxRow; x++) {
+        this.#ctx.beginPath();
+        this.#ctx.arc(x * gap + offset, y * gap, cellSize / 2, 0, 2 * Math.PI);
+        this.#ctx.stroke();
+        if (active[y][x]) this.#ctx.fill();
+      }
+    }
+  }
   redraw() {
+    this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
+    this.drawgrid();
     this.#points.forEach((pointArr) => {
       this.#ctx.beginPath();
       this.#ctx.moveTo(pointArr[0].x, pointArr[0].y);
