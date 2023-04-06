@@ -142,6 +142,8 @@ class HexGrid {
   #ctx;
   #points = new Map();
   #pointerCount = 0;
+  #rowcount = 10;
+  #colcount = 10;
   constructor(canvas) {
     this.#canvas = canvas;
     this.resize();
@@ -157,6 +159,12 @@ class HexGrid {
     const parent = this.#canvas.parentElement;
     this.#canvas.width = parent.clientWidth;
     this.#canvas.height = parent.clientHeight;
+    
+    const gap = 80;
+    const cellSize = 60;
+    this.colcount = Math.floor(this.#canvas.width / (cellSize));
+    this.rowcount = Math.floor(this.#canvas.height / (cellSize));
+    if (this.#ctx) this.redraw();
   }
   addPoint(event) {
     const rect = this.#canvas.getBoundingClientRect();
@@ -192,8 +200,8 @@ class HexGrid {
       pointArr.slice(-1)
     );
     let cells = [];
-    for (let y = 0; y < 10; y++) {
-      const maxRow = y % 2 === 0 ? 9 : 10;
+    for (let y = 0; y < this.rowcount; y++) {
+      const maxRow = y % 2 === 0 ? this.colcount - 1 : this.colcount;
       const offset = y % 2 === 0 ? gap / 2 : 0;
       let row = [];
       for (let x = 0; x < maxRow; x++) {
@@ -212,8 +220,8 @@ class HexGrid {
     const active = this.getActiveCells();
     const cellSize = 60;
     const gap = 80;
-    for (let y = 0; y < 10; y++) {
-      const maxRow = y % 2 === 0 ? 9 : 10;
+    for (let y = 0; y < this.rowcount; y++) {
+      const maxRow = y % 2 === 0 ? this.colcount - 1 : this.colcount;
       const offset = y % 2 === 0 ? gap / 2 : 0;
       for (let x = 0; x < maxRow; x++) {
         this.#ctx.beginPath();
@@ -241,8 +249,11 @@ const fullscreen = document.querySelector("#fullscreen");
 fullscreen.addEventListener("click", () => {
   if (!document.fullscreenElement) {
     page.requestFullscreen({ navigationUI: "hide" });
+    logger.log("Going fullscreen");
   } else {
     document.exitFullscreen();
+    logger.log("Leaving fullscreen");
   }
+  grid.resize();
 });
 document.defaultView.addEventListener("resize", grid.resize.bind(grid));
